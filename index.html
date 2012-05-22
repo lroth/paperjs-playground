@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>PaperJS playground</title>
+	<script type="text/javascript" src="lib/paper.js"></script>
+	<script type="text/paperscript" canvas="canvas">
+		//preapare node container and current Point
+		var nodes   = [];
+		var current = null;
+
+		//create main path
+		var path = new Path();
+		path.strokeColor = 'black';
+		path.add(new Point(140, 200));
+		path.arcTo(new Point(550, 200), false);
+
+		// var path = new Path.RegularPolygon(new Point(300, 170), 10, 150);
+		// path.strokeColor = 'black';
+
+		//on mouse drag - move node if we choose one
+		function onMouseDrag(event) {
+		    if (current !== null) {
+		    	var p = path.getNearestPoint(event.point);
+		    	current.position = p;
+		    }
+		}
+
+		//clear current node on mouse release
+		function onMouseUp(event) {
+			current = null;
+		}
+
+		//on mouse down create new node or select node below event point
+		function onMouseDown(event) {
+			//get current point
+		    var point = event.point;
+
+		    //check if we have node below current point
+		    for (var i = nodes.length - 1; i >= 0; i--) {
+				if (nodes[i].hitTest(point)) {
+					current = nodes[i];
+			    }
+		    };
+
+		    //if we select nothing - create new node
+		    if (current === null) {
+			  	//get nearest point
+	    		var circle = new Path.Circle(path.getNearestPoint(event.point), 20);
+				circle.fillColor = new HsbColor(Math.random() * 360, 1, 1);
+				nodes.push(circle);
+		    };
+
+		}
+	</script>
+	<style type="text/css">
+		body {
+			font-family: Arial, "MS Trebuchet", sans-serif;
+			font-size: 12px;
+		}
+		h1 { font-size: 18px; }
+		h2 { font-size: 16px; }
+	</style>
+</head>
+<body>
+	<h1>tip: click somewhere near the necklace =(^_^)=</h1>
+	<canvas id="canvas" width="800" height="600"></canvas>
+	<h2>TODO:</h2>
+	<ul>
+		<li>collision detection</li>
+		<li>angle rotation</li>
+		<li>drag&amp;drop node from catalog</li>
+	</ul>
+</body>
+</html>
