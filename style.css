@@ -1,0 +1,59 @@
+body { font-family: Arial, "MS Trebuchet", sans-serif; font-size: 12px; }
+h1 { font-size: 18px; }
+h2 { font-size: 16px; }	
+
+#shapes-container {
+	border: 2px solid #777;
+
+	-webkit-border-radius: 5px;
+	-moz-border-radius   : 5px;
+	border-radius        : 5px;
+
+	width   : 170px;
+	height  : 80px;
+	
+	position: absolute;
+	right   : 50px;
+	top     : 100px;
+	
+	padding : 10px;
+}
+
+#shapes-container div.shape {
+	margin: 10px 15px 0px 0px;
+	display: inline-block;
+}
+
+#shapes-container div.shape:hover {
+	border: 3px solid #888;
+}
+
+.c_25 {
+	width  : 25px;
+	height : 25px;
+	
+	background: url('img/c_25.png');
+	border-radius: 25px;
+}
+
+.c_35 {
+	width  : 35px;
+	height : 35px;
+
+	background: url('img/c_35.png');
+	border-radius: 35px;
+}
+
+
+.c_45 {
+	width  : 45px;
+	height : 45px;
+	
+	background: url('img/c_45.png');
+	border-radius: 45px;
+}
+
+.selected {
+	border-bottom: 3px solid #000;
+
+}

@@ -3,98 +3,29 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>PaperJS playground</title>
+	<script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript" src="lib/paper.js"></script>
-	<script type="text/paperscript" canvas="canvas">
-		//preapare node container and current Point
-		var nodes   = [];
-		var current = null;
-
-		//create main path
-		var path = new Path();
-		path.strokeColor = 'black';
-		path.add(new Point(140, 200));
-		path.arcTo(new Point(550, 200), false);
-
-		// var path = new Path.RegularPolygon(new Point(300, 170), 10, 150);
-		// path.strokeColor = 'black';
-
-		//on mouse drag - move node if we choose one
-		function onMouseDrag(event) {
-		    if (current !== null) {
-		    	//calculate tangens before move
-		    	var offset = path.getNearestLocation(current.position).offset;
-				var tangent_before = path.getTangentAt(offset);
-
-				//move node to new position
-		    	var p = path.getNearestPoint(event.point);
-		    	current.position = p;
-
-				//calculate tangens after move
-		    	var offset = path.getNearestLocation(p).offset;
-				var tangent_after = path.getTangentAt(offset);
-
-				//rotate node
-				current.rotate(tangent_after.angle - tangent_before.angle);
-		    }
-		}
-
-		//clear current node on mouse release
-		function onMouseUp(event) {
-			current = null;
-		}
-
-		//on mouse down create new node or select node below event point
-		function onMouseDown(event) {
-			//get current point
-		    var point = event.point;
-
-		    //check if we have node below current point
-		    for (var i = nodes.length - 1; i >= 0; i--) {
-				if (nodes[i].hitTest(point)) {
-					current = nodes[i];
-			    }
-		    };
-
-		    //if we select nothing - create new node
-		    if (current === null) {
-			  	//get nearest point
-			  	var p = path.getNearestPoint(event.point);
-	    		// var circle = new Path.Circle(p, 20);
-				// circle.fillColor = new HsbColor(Math.random() * 360, 1, 1);
-				// nodes.push(circle);
-
-				var node = new Path.RegularPolygon(p, 4, 20);
-				node.fillColor = new HsbColor(Math.random() * 360, 1, 1);
-				nodes.push(node);
-
-				var offset = path.getNearestLocation(p).offset;
-				// Find the tangent vector at the given offset:
-				var tangent = path.getTangentAt(offset);
-				node.rotate(tangent.angle);
-				console.log(tangent.angle);
-				// Make the tangent vector 60pt long:
-				// tangent.length = 60;
-		    };
-
-		}
-	</script>
-	<style type="text/css">
-		body {
-			font-family: Arial, "MS Trebuchet", sans-serif;
-			font-size: 12px;
-		}
-		h1 { font-size: 18px; }
-		h2 { font-size: 16px; }
-	</style>
+	<script type="text/javascript" src="lib/main.js"></script>
+	<!-- <script type="text/paperscript" src="lib/paper-main.js" canvas="canvas"></script> -->
+	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 <body>
 	<h1>tip: click somewhere =(^_^)=</h1>
 	<canvas id="canvas" width="800" height="600"></canvas>
 	<h2>TODO:</h2>
 	<ul>
-		<li>collision detection</li>
+		<li>modify offset (3.5?)</li>
+		<li>collision detection on moving</li>
 		<li>angle rotation</li>
-		<li>drag&amp;drop node from catalog</li>
 	</ul>
+	<div id="shapes-container">
+		<div class="shape c_25" attr-size="25" ></div>
+		<div class="shape c_35" attr-size="35"></div>
+		<div class="shape c_45" attr-size="45"></div>
+	</div>
+
+	<img src="img/c_25.png" id="c_25" />
+	<img src="img/c_35.png" id="c_35" />
+	<img src="img/c_45.png" id="c_45" />
 </body>
 </html>
