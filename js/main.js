@@ -16,8 +16,6 @@ $(document).ready(function() {
 		},
 
 		creator : {
-			classPrefix : 'c_',
-
 			draggableOptions : {
 				revert 			: true,
 				revertDuration  : 1
@@ -53,20 +51,19 @@ var Creator = function(options) {
 	};
 
 	this.addDraggable = function() {
-		$('#shapes-container div').draggable(
+		$('#shapes-container img').draggable(
 			this.options.draggableOptions
 		);
 	};
 
 	this.onDragStart = function(event, ui) {
-		this.current = this.options.classPrefix + $(ui.helper.context).attr('attr-size');
+		this.current = $(ui.helper.context).attr('id');
 	}.bind(this);
 
 	this.onDragStop = function(event, ui) {
 		var position = { left : ui.offset.left, top : ui.offset.top };
-
+		
 		//before put we have to calc item size and add some offset to center the item.
-
 		this.paperHelper.putNode( this.current, position );
 		view.draw();
 	}.bind(this);
@@ -111,7 +108,7 @@ var PaperHelper = function(options) {
 
 		//EXPERIMENTAL - MAKE TEST FOR GOOD EFFECT
 		this.tool.minDistance = 2;
-		this.tool.maxDistance = 35;
+		this.tool.maxDistance = 45;
 		//this.tool.fixedDistance = 20;
 
 		//EXTRA DRAG EVENTS
@@ -186,13 +183,13 @@ var PaperHelper = function(options) {
 	    		//if on left side of current node
 	    		if (node_offset > this.left_max && node_offset < current_offset) {
 	    			//set left move border
-	    			this.left_max = node_offset + this.nodes[i].width;;
+	    			this.left_max = node_offset + parseInt(this.nodes[i].width/2);
 	    		};
 
 	    		//if on right side of current node
 	    		if (node_offset < this.right_max && node_offset > current_offset) {
 	    			//set right move border
-	    			this.right_max = node_offset - this.nodes[i].width;;
+	    			this.right_max = node_offset - parseInt(this.nodes[i].width/2);
 	    		};
 	    	};
 	    };
@@ -200,7 +197,14 @@ var PaperHelper = function(options) {
 
 	this.putNode = function(current, point) {
 		var raster      = new Raster(current);
-		raster.position = this.path.getNearestPoint(new Point(point.left, point.top));
+		var point 		= new Point(point.left, point.top);
+		
+		raster.position = this.path.getNearestPoint(point);
+		var offset 		= this.path.getNearestLocation(point).offset;
+		
+		// Find the tangent vector at the given offset:
+ 		var tangent = this.path.getTangentAt(offset);
+ 		raster.rotate(tangent.angle);
 
 		this.nodes.push(raster);
 	};

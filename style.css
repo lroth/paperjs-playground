@@ -19,13 +19,13 @@ h2 { font-size: 16px; }
 	padding : 10px;
 }
 
-#shapes-container div.shape {
+#shapes-container img {
 	margin: 10px 15px 0px 0px;
 	display: inline-block;
 	border: 3px solid #FFF;
 }
 
-#shapes-container div.shape:hover {
+#shapes-container img:hover {
 	border: 3px solid #888;
 }
 
