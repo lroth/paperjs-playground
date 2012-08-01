@@ -1,3 +1,11 @@
+/*
+dlugos patha dynamiczna
+offset + pol szerokosci przy liczeniu granicznych punktow
+przechowanie offsetu w strukturze node a nie liczenie jej
+jesli konczysz przesuwanie to uaktualnij to
+to raster
+*/
+
 paper.install(window);
 
 $(document).ready(function() {
@@ -13,7 +21,7 @@ $(document).ready(function() {
 
 			draggableOptions : {
 				revert 			: true,
-				revertDuration  : 200
+				revertDuration  : 1
 			}
 		}
 	};
@@ -61,6 +69,8 @@ var Creator = function(options) {
 };
 
 var PaperHelper = function(options) {
+	this.pathLength = 0;
+
 	this.nodes		= [];
 	this.current	= null;
 
@@ -74,9 +84,6 @@ var PaperHelper = function(options) {
 	this.pathStartPoint = new Point(options.borders.l, options.borders.t);
 	this.pathEndPoint	= new Point(options.borders.r, options.borders.t);
 
-	//offset wtf - ask cypherq?
-	this.offset = options.offset;
-
 	this.initPaper = function() {
 		paper.setup('canvas');
 
@@ -86,10 +93,12 @@ var PaperHelper = function(options) {
 		this.path.add(this.pathStartPoint);
 		this.path.arcTo(this.pathEndPoint, false);
 
+		this.pathLength 	  = parseInt(this.path.length);
+
 		this.tool = new Tool();
 
 		//EXPERIMENTAL - MAKE TEST FOR GOOD EFFECT
-		this.tool.minDistance = 2;
+		this.tool.minDistance = 4;
 		this.tool.maxDistance = 35;
 		//this.tool.fixedDistance = 20;
 
@@ -140,70 +149,50 @@ var PaperHelper = function(options) {
 	this.onMouseDown = function(event) {
 		var point = event.point;
 
-    //check if we have node below current point
-    this.current = this.hitTestAll(point);
+	    //check if we have node below current point
+	    this.current = this.hitTestAll(point);
 
-    var current_offset = this.path.getNearestLocation(this.current.position).offset;
+	    var current_offset = this.path.getNearestLocation(this.current.position).offset;
 
-    //ok lets try to find two nearest points before drag to detect collision
-    this.left_max  = 0;   //start arc path point
-    this.right_max = 800; //end arc path point - TODO: move this to options or better calc lenght on init!
+	    //ok lets try to find two nearest points before drag to detect collision
+	    this.left_max  = 0;   //start arc path point
+	    this.right_max = this.pathLength; //end arc path point - TODO: move this to options or better calc lenght on init!
 
-    //go with nodes
-    for (var i = this.nodes.length - 1; i >= 0; i--) {
-    	//if not current node
-    	if (this.nodes[i] != this.current) {
-    		//get node from loop position on path
-    		var node_offset = this.path.getNearestLocation(this.nodes[i].position).offset;
+	    var node_offset;
 
-    		//if on left side of current node
-    		if (node_offset > this.left_max && node_offset < current_offset) {
-    			//set left move border
-    			this.left_max = node_offset;
-    		};
+	    //go with nodes
+	    for (var i = this.nodes.length - 1; i >= 0; i--) {
+	    	//if not current node
+	    	if (this.nodes[i] != this.current) {
+	    		//get node from loop position on path
+	    		node_offset = this.path.getNearestLocation(this.nodes[i].position).offset;
 
-    		//if on right side of current node
-    		if (node_offset < this.right_max && node_offset > current_offset) {
-    			//set right move border
-    			this.right_max = node_offset;
-    		};
-    	};
-    };
-   console.log(this.left_max, 'left_max');
-   console.log(this.right_max, 'right_max');
+	    		//if on left side of current node
+	    		if (node_offset > this.left_max && node_offset < current_offset) {
+	    			//set left move border
+	    			this.left_max = node_offset;
+	    		};
 
-
+	    		//if on right side of current node
+	    		if (node_offset < this.right_max && node_offset > current_offset) {
+	    			//set right move border
+	    			this.right_max = node_offset;
+	    		};
+	    	};
+	    };
 	};
 
 	this.putNode = function(current, point) {
-		// this.path.visible = false;
-		console.log(current);
 		var raster      = new Raster(current);
 		raster.position = this.path.getNearestPoint(new Point(point.left, point.top));
-		console.log(point, 'point');
-		// console.log(new Point(point.left, point.top), 'point');
-		// console.log(project.activeLayer.lastChild);
 
 		this.nodes.push(raster);
 	};
 
-	this.getDragDiff = function(event) {
-		this.dragDiff.x = event.x - this.current.position.x;
-		if( this.dragDiff.x < 0 ) { this.dragDiff.x = this.dragDiff.x * (-1); }
-
-		this.dragDiff.y = event.y - this.current.position.y;
-		if( this.dragDiff.y < 0 ) { this.dragDiff.y = this.dragDiff.y * (-1); }
-	};
-
-	this.getDragDirection = function(toolObj) {
-		//0 - left, 1 - right - more efficient
-		return toolObj._lastPoint.x > toolObj._point.x ? 0 : 1;
-	};
-
-	this.hitTestAll = function(point, maxPoint) {
+	this.hitTestAll = function(point) {
 		//check if we have node below current point
 		for (var i = this.nodes.length - 1; i >= 0; i--) {
-			if (this.rasterHitTest(point, this.nodes[i], this.offset)) {
+			if (this.rasterHitTest(point, this.nodes[i])) {
 				return this.nodes[i];
 			}
 		};
@@ -211,16 +200,16 @@ var PaperHelper = function(options) {
 		return null;
 	};
 
-	this.rasterHitTest = function(point, node, offset) {
+	this.rasterHitTest = function(point, node) {
 		var area   = 0;
 
 		//Affected points left, right, top, bottom
 		var points = { l:0, r:0, t:0, b:0 };
 
-		points.r = node.position.x + node.size.width - offset;
-		points.l = node.position.x - node.size.width + offset;
-		points.t = node.position.y + node.size.height - offset;
-		points.b = node.position.y - node.size.height + offset;
+		points.r = node.position.x + node.size.width;
+		points.l = node.position.x - node.size.width;
+		points.t = node.position.y + node.size.height;
+		points.b = node.position.y - node.size.height;
 
 		if((point.x > points.l && point.x < points.r) && (point.y > points.b && point.y < points.t)) {
 			return true;
