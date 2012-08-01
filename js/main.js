@@ -3,8 +3,6 @@ offset + pol szerokosci przy liczeniu granicznych punktow
 
 przechowanie offsetu w strukturze node a nie liczenie jej
 jesli konczysz przesuwanie to uaktualnij tenże offset
-
-to raster
 */
 
 paper.install(window);
@@ -165,6 +163,10 @@ var PaperHelper = function(options) {
 
 	    //check if we have node below current point
 	    this.current = this.hitTestAll(point);
+
+	    if(this.current == null) {
+	    	return false;
+	    }
 
 	    var current_offset = this.path.getNearestLocation(this.current.position).offset;
 
