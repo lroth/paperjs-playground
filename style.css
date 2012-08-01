@@ -9,8 +9,8 @@ h2 { font-size: 16px; }
 	-moz-border-radius   : 5px;
 	border-radius        : 5px;
 
-	width   : 170px;
-	height  : 80px;
+	width   : auto;
+	height  : auto;
 	
 	position: absolute;
 	right   : 50px;
@@ -22,6 +22,7 @@ h2 { font-size: 16px; }
 #shapes-container div.shape {
 	margin: 10px 15px 0px 0px;
 	display: inline-block;
+	border: 3px solid #FFF;
 }
 
 #shapes-container div.shape:hover {
@@ -53,7 +54,72 @@ h2 { font-size: 16px; }
 	border-radius: 45px;
 }
 
+.c_45_koral {
+	width  : 45px;
+	height : 45px;
+	
+	background: url('img/c_45_koral.png');
+	border-radius: 45px;
+}
+
 .selected {
 	border-bottom: 3px solid #000;
 
+}
+
+#preview {
+	display: none;
+
+	position: absolute;
+	right   : 50px;
+	top     : 400px;
+}
+
+#to-png-button {
+   	width: 50;
+   	height: 30px;
+   	cursor: default;
+}
+
+.button {
+   background-image: -webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(235,235,235,1) 50%, rgba(221,221,221,1) 50%,rgba(207,207,207,1) 100%);
+   background-image:    -moz-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(235,235,235,1) 50%, rgba(221,221,221,1) 50%,rgba(207,207,207,1) 100%);
+   background-image:     -ms-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(235,235,235,1) 50%, rgba(221,221,221,1) 50%,rgba(207,207,207,1) 100%);
+   background-image:      -o-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(235,235,235,1) 50%, rgba(221,221,221,1) 50%,rgba(207,207,207,1) 100%);
+   background-image:         linear-gradient(top, rgba(242,242,242,1) 0%,rgba(235,235,235,1) 50%, rgba(221,221,221,1) 50%,rgba(207,207,207,1) 100%);
+   -webkit-box-shadow: 0px 0px 0px 1px rgba(250,250,250,1)inset;
+      -moz-box-shadow: 0px 0px 0px 1px rgba(250,250,250,1)inset;
+           box-shadow: 0px 0px 0px 1px rgba(250,250,250,1)inset;
+   border: solid 1px rgba(112,112,112,1);
+   -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+           border-radius: 3px;
+   padding: 0px 24px 0px 24px;
+   display: inline-block;
+   font-size: 14px;
+   font-family: Arial, Sans-serif;
+   line-height: 32px;
+   color: rgba(0,0,0,1);
+}
+.button:hover {
+   background-image: -webkit-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(217,240,252,1) 50%, rgba(190,230,253,1) 50%,rgba(167,216,245,1) 100%);
+   background-image:    -moz-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(217,240,252,1) 50%, rgba(190,230,253,1) 50%,rgba(167,216,245,1) 100%);
+   background-image:     -ms-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(217,240,252,1) 50%, rgba(190,230,253,1) 50%,rgba(167,216,245,1) 100%);
+   background-image:      -o-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(217,240,252,1) 50%, rgba(190,230,253,1) 50%,rgba(167,216,245,1) 100%);
+   background-image:         linear-gradient(top, rgba(234,246,253,1) 0%,rgba(217,240,252,1) 50%, rgba(190,230,253,1) 50%,rgba(167,216,245,1) 100%);
+   -webkit-box-shadow: 0px 0px 0px 1px rgba(239,249,254,1)inset;
+      -moz-box-shadow: 0px 0px 0px 1px rgba(239,249,254,1)inset;
+           box-shadow: 0px 0px 0px 1px rgba(239,249,254,1)inset;
+   border: solid 1px rgba(60,126,177,1);
+}
+.button:active {
+   background-image: -webkit-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(196,229,246,1) 50%, rgba(152,208,239,1) 50%,rgba(104,178,218,1) 100%);
+   background-image:    -moz-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(196,229,246,1) 50%, rgba(152,208,239,1) 50%,rgba(104,178,218,1) 100%);
+   background-image:     -ms-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(196,229,246,1) 50%, rgba(152,208,239,1) 50%,rgba(104,178,218,1) 100%);
+   background-image:      -o-linear-gradient(top, rgba(234,246,253,1) 0%,rgba(196,229,246,1) 50%, rgba(152,208,239,1) 50%,rgba(104,178,218,1) 100%);
+   background-image:         linear-gradient(top, rgba(234,246,253,1) 0%,rgba(196,229,246,1) 50%, rgba(152,208,239,1) 50%,rgba(104,178,218,1) 100%);
+   -webkit-box-shadow: 0px 0px 0px 1px rgba(154,186,203,1)inset;
+      -moz-box-shadow: 0px 0px 0px 1px rgba(154,186,203,1)inset;
+           box-shadow: 0px 0px 0px 1px rgba(154,186,203,1)inset;
+   border: solid 1px rgba(44,98,139,1);
 }

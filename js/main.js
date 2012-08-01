@@ -1,8 +1,9 @@
 /*
-dlugos patha dynamiczna
 offset + pol szerokosci przy liczeniu granicznych punktow
+
 przechowanie offsetu w strukturze node a nie liczenie jej
-jesli konczysz przesuwanie to uaktualnij to
+jesli konczysz przesuwanie to uaktualnij tenże offset
+
 to raster
 */
 
@@ -46,6 +47,11 @@ var Creator = function(options) {
 		this.options.draggableOptions.stop 	= this.onDragStop;
 		this.options.draggableOptions.start = this.onDragStart;
 		this.addDraggable();
+		this.addToCanvasBtn();
+	};
+
+	this.addToCanvasBtn = function() {
+		$('#to-png-button').click(this.onExportToCanvas);
 	};
 
 	this.addDraggable = function() {
@@ -66,6 +72,14 @@ var Creator = function(options) {
 		this.paperHelper.putNode( this.current, position );
 		view.draw();
 	}.bind(this);
+
+	this.onExportToCanvas = function() {
+		var canvas 	= $('#canvas');
+		var img 	= canvas[0].toDataURL('image/png');
+
+		$('#preview').css('display', 'block');
+		$('#preview').attr('src', img);
+	};
 };
 
 var PaperHelper = function(options) {
@@ -80,7 +94,7 @@ var PaperHelper = function(options) {
 
 	this.nearestLocations = [];
 
-	//bottom value will be counted (and despit it is bottom, value will be higher!)
+	//bottom value will be counted (and despite it is bottom, value will be higher!)
 	this.pathStartPoint = new Point(options.borders.l, options.borders.t);
 	this.pathEndPoint	= new Point(options.borders.r, options.borders.t);
 
@@ -98,7 +112,7 @@ var PaperHelper = function(options) {
 		this.tool = new Tool();
 
 		//EXPERIMENTAL - MAKE TEST FOR GOOD EFFECT
-		this.tool.minDistance = 4;
+		this.tool.minDistance = 2;
 		this.tool.maxDistance = 35;
 		//this.tool.fixedDistance = 20;
 
@@ -170,13 +184,13 @@ var PaperHelper = function(options) {
 	    		//if on left side of current node
 	    		if (node_offset > this.left_max && node_offset < current_offset) {
 	    			//set left move border
-	    			this.left_max = node_offset;
+	    			this.left_max = node_offset + this.nodes[i].width;;
 	    		};
 
 	    		//if on right side of current node
 	    		if (node_offset < this.right_max && node_offset > current_offset) {
 	    			//set right move border
-	    			this.right_max = node_offset;
+	    			this.right_max = node_offset - this.nodes[i].width;;
 	    		};
 	    	};
 	    };
