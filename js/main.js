@@ -114,16 +114,6 @@ var PaperHelper = function(options) {
 
 		this.tool = new Tool();
 
-		//EXPERIMENTAL - MAKE TEST FOR GOOD EFFECT
-		// this.tool.minDistance = 2;
-		// this.tool.maxDistance = 45;
-		//this.tool.fixedDistance = 20;
-
-		//EXTRA DRAG EVENTS
-		//event.delta (distance beetwee)
-		//event.middlePoint ( middle between event.lastPoint and event.point)
-		//event.count
-
 		this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 		this.tool.onMouseUp   = this.onMouseUp.bind(this);
 		this.tool.onMouseDown = this.onMouseDown.bind(this);
@@ -150,7 +140,8 @@ var PaperHelper = function(options) {
 
 			//move
 			if (offset > this.left_max && offset < this.right_max) {
-				this.current.position = p;
+				this.current.position 	= p;
+				this.current.nodeOffset = offset;
 
 				//rotate node
 				this.current.rotate(tangent_after.angle - tangent_before.angle);
@@ -171,7 +162,6 @@ var PaperHelper = function(options) {
 
 	//on mouse down create new node or select node below event point
 	this.onMouseDown = function(event) {
-
 		var point = event.point;
 
 	    //check if we have node below current point
@@ -180,12 +170,12 @@ var PaperHelper = function(options) {
 	    if(this.current == null) {
 	    	return false;
 	    }
-
-	    var current_offset = this.path.getNearestLocation(this.current.position).offset;
+	    
+	    var current_offset = this.current.nodeOffset;
 
 	    //ok lets try to find two nearest points before drag to detect collision
-	    this.left_max  = 0;   //start arc path point
-	    this.right_max = this.pathLength; //end arc path point - TODO: move this to options or better calc lenght on init!
+	    this.left_max  = 0;   				//start arc path point
+	    this.right_max = this.pathLength; 	//end arc path point
 
 	    var node_offset;
 
@@ -194,7 +184,7 @@ var PaperHelper = function(options) {
 	    	//if not current node
 	    	if (this.nodes[i] != this.current) {
 	    		//get node from loop position on path
-	    		node_offset = this.path.getNearestLocation(this.nodes[i].position).offset;
+	    		node_offset = this.nodes[i].nodeOffset;
 
 	    		//if on left side of current node
 	    		if (node_offset > this.left_max && node_offset < current_offset) {
@@ -212,11 +202,13 @@ var PaperHelper = function(options) {
 	};
 
 	this.removeNode = function() {
-		this.left_max  = 0;
-		this.right_max = this.path.length;
+		if(this.current !== null) {
+			this.left_max  = 0;
+			this.right_max = this.path.length;
 
-		this.nodes.splice(this.findInNodes(this.current.number), 1);
-		this.current.remove();
+			this.nodes.splice(this.findInNodes(this.current.number), 1);
+			this.current.remove();	
+		}
 	};
 
 	this.findInNodes = function(nodeNumber) {
@@ -231,9 +223,10 @@ var PaperHelper = function(options) {
 		var raster      = new Raster(current);
 		var point 		= new Point(point.left, point.top);
 		
-		raster.position = this.path.getNearestPoint(point);
-		var offset 		= this.path.getNearestLocation(point).offset;
-		
+		var offset        = this.path.getNearestLocation(point).offset;
+		raster.position   = this.path.getNearestPoint(point);
+		raster.nodeOffset = offset;
+
 		// Find the tangent vector at the given offset:
  		var tangent = this.path.getTangentAt(offset);
  		raster.rotate(tangent.angle);
