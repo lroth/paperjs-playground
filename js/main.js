@@ -74,11 +74,19 @@ var Creator = function(options) {
 
 		$('#preview').css('display', 'block');
 		$('#preview').attr('src', img);
+
+		var token = Math.random();
+
+		$.post('ajax.php', {'image' : img, 'token' : token}, function(response) {});
+
+		window.location.href = 'ajax.php?token=' + token;
 	};
 };
 
 var PaperHelper = function(options) {
+	this.nodeCounter= 1;
 	this.pathLength = 0;
+	this.isDraged 	= false;
 
 	this.nodes		= [];
 	this.current	= null;
@@ -107,8 +115,8 @@ var PaperHelper = function(options) {
 		this.tool = new Tool();
 
 		//EXPERIMENTAL - MAKE TEST FOR GOOD EFFECT
-		this.tool.minDistance = 2;
-		this.tool.maxDistance = 45;
+		// this.tool.minDistance = 2;
+		// this.tool.maxDistance = 45;
 		//this.tool.fixedDistance = 20;
 
 		//EXTRA DRAG EVENTS
@@ -128,6 +136,8 @@ var PaperHelper = function(options) {
 	//on mouse drag - move node if we choose one
 	this.onMouseDrag = function(event) {
 		if (this.current !== null) {
+			this.isDraged = true;
+
 			var p = this.path.getNearestPoint(event.middlePoint);
 
 			//calculate tangens before move
@@ -151,11 +161,17 @@ var PaperHelper = function(options) {
 
 	//clear current node on mouse release
 	this.onMouseUp = function(event) {
-		this.current = null;
+		if(!this.isDraged) {
+			this.removeNode();
+		}
+
+		this.isDraged 	= false;
+		this.current 	= null;
 	};
 
 	//on mouse down create new node or select node below event point
 	this.onMouseDown = function(event) {
+
 		var point = event.point;
 
 	    //check if we have node below current point
@@ -183,16 +199,32 @@ var PaperHelper = function(options) {
 	    		//if on left side of current node
 	    		if (node_offset > this.left_max && node_offset < current_offset) {
 	    			//set left move border
-	    			this.left_max = node_offset + parseInt(this.nodes[i].width/2);
+	    			this.left_max = node_offset + (parseInt(this.nodes[i].width * 0.5) + parseInt(this.current.width * 0.5));
 	    		};
 
 	    		//if on right side of current node
 	    		if (node_offset < this.right_max && node_offset > current_offset) {
 	    			//set right move border
-	    			this.right_max = node_offset - parseInt(this.nodes[i].width/2);
+	    			this.right_max = node_offset - (parseInt(this.nodes[i].width * 0.5) + parseInt(this.current.width * 0.5));
 	    		};
 	    	};
 	    };
+	};
+
+	this.removeNode = function() {
+		this.left_max  = 0;
+		this.right_max = this.path.length;
+
+		this.nodes.splice(this.findInNodes(this.current.number), 1);
+		this.current.remove();
+	};
+
+	this.findInNodes = function(nodeNumber) {
+		for (var i = this.nodes.length - 1; i >= 0; i--) {
+			if(this.nodes[i].number == nodeNumber) {
+				return i;
+			}
+		}
 	};
 
 	this.putNode = function(current, point) {
@@ -205,6 +237,9 @@ var PaperHelper = function(options) {
 		// Find the tangent vector at the given offset:
  		var tangent = this.path.getTangentAt(offset);
  		raster.rotate(tangent.angle);
+
+ 		raster.number = this.nodeCounter;
+ 		this.nodeCounter += 1;
 
 		this.nodes.push(raster);
 	};
