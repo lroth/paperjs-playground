@@ -69,24 +69,21 @@ var Creator = function(options) {
 	}.bind(this);
 
 	this.onExportToCanvas = function() {
-		var canvas 	= $('#canvas');
-		var img 	= canvas[0].toDataURL('image/png');
-
-		$('#preview').css('display', 'block');
-		$('#preview').attr('src', img);
-
-		var token = Math.random();
+		var canvas = $('#canvas');
+		var img    = canvas[0].toDataURL('image/png');
+		var token  = Math.random();                                                 
 
 		$.post('ajax.php', {'image' : img, 'token' : token}, function(response) {});
-
-		window.location.href = 'ajax.php?token=' + token;
+		window.open('ajax.php?token=' + token);
 	};
 };
 
 var PaperHelper = function(options) {
 	this.nodeCounter= 1;
 	this.pathLength = 0;
-	this.isDraged 	= false;
+
+	this.dragDirect = null;
+	this.dragSize	= {};
 
 	this.nodes		= [];
 	this.current	= null;
@@ -112,8 +109,7 @@ var PaperHelper = function(options) {
 
 		this.pathLength 	  = parseInt(this.path.length);
 
-		this.tool = new Tool();
-
+		this.tool             = new Tool();
 		this.tool.onMouseDrag = this.onMouseDrag.bind(this);
 		this.tool.onMouseUp   = this.onMouseUp.bind(this);
 		this.tool.onMouseDown = this.onMouseDown.bind(this);
@@ -121,42 +117,124 @@ var PaperHelper = function(options) {
 		view.draw();
 	},
 
-	// var path = new Path.RegularPolygon(new Point(300, 170), 10, 150);
-	// path.strokeColor = 'black';
 	//on mouse drag - move node if we choose one
 	this.onMouseDrag = function(event) {
 		if (this.current !== null) {
-			this.isDraged = true;
-
+			//Make direction and size of drag global for helper
+			this.setDragSize(event);
+			this.setDragDirection(event);
+			
+			//Prepare move params
 			var p = this.path.getNearestPoint(event.middlePoint);
 
-			//calculate tangens before move
-			var offset         = this.path.getNearestLocation(this.current.position).offset;
-			var tangent_before = this.path.getTangentAt(offset);
-
-			//calculate tangens after move
-			var offset        = this.path.getNearestLocation(p).offset;
-			var tangent_after = this.path.getTangentAt(offset);
-
-			//move
-			if (offset > this.left_max && offset < this.right_max) {
-				this.current.position 	= p;
-				this.current.nodeOffset = offset;
-
-				//rotate node
-				this.current.rotate(tangent_after.angle - tangent_before.angle);
-			};
-
+			var paramsBefore = this.calcMoveParams(null, this.current.nodeOffset);
+			var paramsAfter  = this.calcMoveParams(p);
+			
+			//And try to move
+			this.checkAndMove({
+				position : p,
+			
+				offset  : paramsAfter.offset,  
+				tangent : paramsAfter.tangent.angle - paramsBefore.tangent.angle,
+				node 	: this.current
+			});
 		}
 	};
 
+	this.moveAnotherNode = function(node) {
+		if(node !== null) {
+			var positionPoint = { x : node.position.x, y : node.position.y };
+			
+			if(this.dragDirect == 'left') {
+				positionPoint.x = positionPoint.x - this.dragSize.x;
+			} else {
+				positionPoint.y = positionPoint.y - this.dragSize.y;
+			}
+
+			var point 		 = new Point(positionPoint.x, positionPoint.y);
+			var paramsBefore = this.calcMoveParams(null, node.nodeOffset);
+			var paramsAfter  = this.calcMoveParams(point);
+
+			var moveParams = {
+				position : point,
+
+				offset  : paramsAfter.offset,
+				tangent : paramsAfter.tangent.angle - paramsBefore.tangent.angle,
+				node 	: node,
+
+				left 	: this.left_max,
+				right 	: this.right_max
+			};
+
+			// this.checkAndMove(movePrams);
+		}
+	};
+
+	this.findNearestNode = function(offset, currentNodeNumber) {
+		var nearest = { nodeOffset : 0 , default : true };
+
+	    for (var i = this.nodes.length - 1; i >= 0; i--) {
+	    	if(this.nodes[i].number !== currentNodeNumber) {
+	    		if(this.dragDirect == 'left') {
+		    		if((this.nodes[i].nodeOffset < offset) && (nearest.nodeOffset > this.nodes[i].nodeOffset)) {
+		    			nearest = this.nodes[i];
+		    		}
+		    	}
+		    	else {
+	    			if((this.nodes[i].nodeOffset > offset) && (nearest.nodeOffset < this.nodes[i].nodeOffset)) {
+	    				nearest = this.nodes[i];
+	    			}
+		    	}	
+	    	}
+	    }
+
+	    return (typeof nearest.default !== "undefined") ? null : nearest;
+	};
+
+	this.checkAndMove = function(params) {
+		if (params.offset > params.left && params.offset < params.right) {
+			params.node.position 	= params.position;
+			params.node.nodeOffset 	= params.offset;
+
+			//rotate node
+			params.node.rotate(params.tangent);
+		}
+		else {
+			this.moveAnotherNode(
+				this.findNearestNode(params.offset, params.node.number)
+			);
+		}
+	};
+
+	this.setDragSize = function(event) {
+		this.dragSize.x = event.tool._lastPoint.x - event.tool._point.x;
+		if(this.dragSize.x < 0) { this.dragSize.x = this.dragSize.x * (-1); }
+
+		this.dragSize.y = event.tool._lastPoint.y - event.tool._point.y;
+		if(this.dragSize.y < 0) { this.dragSize.y = this.dragSize.y * (-1); }
+	};
+
+	this.setDragDirection = function(event) {
+		//if last point x lower than point (start point), we are movin left
+		this.dragDirect = ((event.tool._lastPoint.x - event.tool._point.x) < 0) ? 'left' : 'right';
+	};
+
+	this.calcMoveParams = function(position, offset) {
+		var params = {};
+		params.offset =  (typeof offset === "undefined")  ? this.path.getNearestLocation(position).offset : offset;
+		params.tangent = this.path.getTangentAt(params.offset);
+
+		return params;
+	};
+
+
 	//clear current node on mouse release
 	this.onMouseUp = function(event) {
-		if(!this.isDraged) {
+		if(this.dragDirect == null) {
 			this.removeNode();
 		}
 
-		this.isDraged 	= false;
+		this.dragDirect 	= null;
 		this.current 	= null;
 	};
 
@@ -170,7 +248,7 @@ var PaperHelper = function(options) {
 	    if(this.current == null) {
 	    	return false;
 	    }
-	    
+
 	    var current_offset = this.current.nodeOffset;
 
 	    //ok lets try to find two nearest points before drag to detect collision
@@ -231,8 +309,8 @@ var PaperHelper = function(options) {
  		var tangent = this.path.getTangentAt(offset);
  		raster.rotate(tangent.angle);
 
- 		raster.number = this.nodeCounter;
- 		this.nodeCounter += 1;
+			raster.number    = this.nodeCounter;
+			this.nodeCounter += 1;
 
 		this.nodes.push(raster);
 	};
