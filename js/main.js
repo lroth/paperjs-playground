@@ -136,7 +136,10 @@ var PaperHelper = function(options) {
 			
 				offset  : paramsAfter.offset,  
 				tangent : paramsAfter.tangent.angle - paramsBefore.tangent.angle,
-				node 	: this.current
+				node 	: this.current,
+
+				left 	: this.left_max,
+				right 	: this.right_max
 			});
 		}
 	};
@@ -160,28 +163,40 @@ var PaperHelper = function(options) {
 
 				offset  : paramsAfter.offset,
 				tangent : paramsAfter.tangent.angle - paramsBefore.tangent.angle,
-				node 	: node,
-
-				left 	: this.left_max,
-				right 	: this.right_max
+				node 	: node
 			};
+//
+			// if(this.dragDirect == 'left') {
+				// this.current_offset
+			// }
+			// else {
+// 
+			// }
 
-			// this.checkAndMove(movePrams);
+			this.checkAndMove(moveParams);
 		}
 	};
 
 	this.findNearestNode = function(offset, currentNodeNumber) {
-		var nearest = { nodeOffset : 0 , default : true };
+		var nearest = { nodeOffset : null , default : true };
 
 	    for (var i = this.nodes.length - 1; i >= 0; i--) {
+	    	console.log(this.nodes[i].number);
 	    	if(this.nodes[i].number !== currentNodeNumber) {
 	    		if(this.dragDirect == 'left') {
-		    		if((this.nodes[i].nodeOffset < offset) && (nearest.nodeOffset > this.nodes[i].nodeOffset)) {
-		    			nearest = this.nodes[i];
+		    		if((this.nodes[i].nodeOffset < offset)) {
+		    			if(nearest.nodeOffset !== null) {
+		    				if(nearest.nodeOffset > this.nodes[i].nodeOffset) {
+		    					nearest = this.nodes[i];
+		    				}
+		    			}
+		    			else {
+		    				nearest = this.nodes[i];	
+		    			}
 		    		}
 		    	}
 		    	else {
-	    			if((this.nodes[i].nodeOffset > offset) && (nearest.nodeOffset < this.nodes[i].nodeOffset)) {
+	    			if((this.nodes[i].nodeOffset > offset) && (nearest.nodeOffset !== null) && (nearest.nodeOffset < this.nodes[i].nodeOffset)) {
 	    				nearest = this.nodes[i];
 	    			}
 		    	}	
@@ -192,6 +207,11 @@ var PaperHelper = function(options) {
 	};
 
 	this.checkAndMove = function(params) {
+		if(params.node.number == 2) {
+			console.log(params.offset, 'of');
+			console.log(params.left, 'l');
+			console.log(params.right, 'r');
+		}
 		if (params.offset > params.left && params.offset < params.right) {
 			params.node.position 	= params.position;
 			params.node.nodeOffset 	= params.offset;
@@ -216,7 +236,7 @@ var PaperHelper = function(options) {
 
 	this.setDragDirection = function(event) {
 		//if last point x lower than point (start point), we are movin left
-		this.dragDirect = ((event.tool._lastPoint.x - event.tool._point.x) < 0) ? 'left' : 'right';
+		this.dragDirect = ((this.dragStartPoint.x > event.tool._point.x)) ? 'left' : 'right';
 	};
 
 	this.calcMoveParams = function(position, offset) {
@@ -235,12 +255,13 @@ var PaperHelper = function(options) {
 		}
 
 		this.dragDirect 	= null;
-		this.current 	= null;
+		this.current 		= null;
 	};
 
 	//on mouse down create new node or select node below event point
 	this.onMouseDown = function(event) {
 		var point = event.point;
+		this.dragStartPoint = point;
 
 	    //check if we have node below current point
 	    this.current = this.hitTestAll(point);
