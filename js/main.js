@@ -1,10 +1,3 @@
-/*
-offset + pol szerokosci przy liczeniu granicznych punktow
-
-przechowanie offsetu w strukturze node a nie liczenie jej
-jesli konczysz przesuwanie to uaktualnij tenże offset
-*/
-
 paper.install(window);
 
 $(document).ready(function() {
@@ -28,6 +21,8 @@ $(document).ready(function() {
 	var paperHelper = new PaperHelper( options.paperHelper );
 
 	creator.addBehaviours();
+
+    //Little DI
 	creator.paperHelper = paperHelper;
 	creator.paperHelper.initPaper();
 });
@@ -165,13 +160,6 @@ var PaperHelper = function(options) {
 				tangent : paramsAfter.tangent.angle - paramsBefore.tangent.angle,
 				node 	: node
 			};
-//
-			// if(this.dragDirect == 'left') {
-				// this.current_offset
-			// }
-			// else {
-// 
-			// }
 
 			this.checkAndMove(moveParams);
 		}
@@ -181,7 +169,6 @@ var PaperHelper = function(options) {
 		var nearest = { nodeOffset : null , default : true };
 
 	    for (var i = this.nodes.length - 1; i >= 0; i--) {
-	    	console.log(this.nodes[i].number);
 	    	if(this.nodes[i].number !== currentNodeNumber) {
 	    		if(this.dragDirect == 'left') {
 		    		if((this.nodes[i].nodeOffset < offset)) {
@@ -207,11 +194,6 @@ var PaperHelper = function(options) {
 	};
 
 	this.checkAndMove = function(params) {
-		if(params.node.number == 2) {
-			console.log(params.offset, 'of');
-			console.log(params.left, 'l');
-			console.log(params.right, 'r');
-		}
 		if (params.offset > params.left && params.offset < params.right) {
 			params.node.position 	= params.position;
 			params.node.nodeOffset 	= params.offset;
@@ -235,8 +217,10 @@ var PaperHelper = function(options) {
 	};
 
 	this.setDragDirection = function(event) {
-		//if last point x lower than point (start point), we are movin left
-		this.dragDirect = ((this.dragStartPoint.x > event.tool._point.x)) ? 'left' : 'right';
+        this.dragDirect = 
+            (event.delta.x < 0) ? 'left' : 
+                (event.delta.x > 0 ) ? 'right' : 
+                    (typeof this.dragDirect !== "undefined") ? this.dragDirect : "left";
 	};
 
 	this.calcMoveParams = function(position, offset) {
@@ -327,14 +311,25 @@ var PaperHelper = function(options) {
 		raster.nodeOffset = offset;
 
 		// Find the tangent vector at the given offset:
- 		var tangent = this.path.getTangentAt(offset);
- 		raster.rotate(tangent.angle);
+ 		raster.rotate(this.path.getTangentAt(offset).angle);
 
-			raster.number    = this.nodeCounter;
-			this.nodeCounter += 1;
+        raster.number    = this.nodeCounter;
+        this.nodeCounter += 1;
 
-		this.nodes.push(raster);
+        this.nodes.splice(this.getPositionInPath(raster), 0, raster);
 	};
+
+    this.getPathOffset = function(node) {
+        return this.path.getNearestLocation(node.getPosition()).offset;
+    };
+
+    this.getPositionInPath = function(node) {
+        for(var i = 0; i < this.nodes.length; i++) {
+            if(this.getPathOffset(this.nodes[i]) > this.getPathOffset(node)) {
+                return i;
+            }
+        }
+    };
 
 	this.hitTestAll = function(point) {
 		//check if we have node below current point
